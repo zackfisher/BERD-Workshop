@@ -1,0 +1,9 @@
+"","happylag","excitedlag","relaxedlag","satisfiedlag","angrylag","anxiouslag","depressedlag","sadlag","happy","excited","relaxed","satisfied","angry","anxious","depressed","sad"
+"happy",5,0,5,0,0,0,0,0,0,0,0,0,0,0,0,1
+"excited",0,5,0,0,0,0,0,0,5,0,0,0,0,0,0,0
+"relaxed",0,0,5,0,0,0,0,1,0,1,0,5,0,0,1,0
+"satisfied",0,0,0,5,0,0,0,0,5,5,0,0,0,0,0,0
+"angry",0,0,0,0,5,0,0,0,0,0,0,5,0,0,5,2
+"anxious",0,0,0,0,0,5,0,0,0,0,0,1,5,0,0,1
+"depressed",0,0,0,0,0,0,5,0,5,1,0,0,0,0,0,0
+"sad",0,0,0,0,0,0,0,5,0,0,0,5,0,0,5,0

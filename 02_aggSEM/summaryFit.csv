@@ -1,0 +1,2 @@
+"file","chisq","df","npar","pvalue","rmsea","srmr","nnfi","cfi","bic","aic","logl","status"
+"all","550.1039","75","77","0","0.0535","0.0475","0.92","0.95","77635.6616","77196.53","-38521.265","converged normally"

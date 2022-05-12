@@ -1,0 +1,234 @@
+---
+title: "BERD Workshop"
+author: "Zachary F. Fisher"
+date: "5/12/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(width=90)
+```
+
+# Preliminaries
+
+We begin by installing and loading the gimme and multivar packages.
+
+```{r}
+#install.packages(c("gimme", "multivar"))
+library(gimme)
+library(multivar)
+```
+
+# Example Data
+
+Our running example for the workshop uses data from Rowland and Wenzel (2020). The data describe:
+
+- 125 undergraduates
+- 6 measurements per day for 40 days
+- Random assignment to mindfulness group or control
+- Seven emotion variables:
+  - happy, excited, relaxed, satisfied, angry, anxious, depressed, sad
+
+These data were recently made available as part of paper by Haslbeck, Ryan \& Dablander (2022) at the following github site: https://github.com/jmbh/EmotionTimeSeries
+
+You can download the .RDS data file used in this workshop from the following address:
+
+https://github.com/jmbh/EmotionTimeSeries/tree/master/DataClean/Rowland2020
+
+## Read in the .RDS file.
+
+```{r pressure, echo=FALSE}
+raw_data <- readRDS("data_Rowland2020.RDS")
+head(raw_data)
+```
+## Prepare Data for Analysis
+
+First, we Save that data as a list where each list element is one individual's data. 
+
+To reduce the runtime of these examples we'll select 10 individuals from the full dataset. The first 5 being from the treatment group and the second five being from the control group. 
+
+```{r}
+subj_to_keep <- c(3,25,26,27,28,1,2,6,7,8)
+vars_to_keep <- c(
+     "happy", 
+     "excited", 
+     "relaxed", 
+     "satisfied", 
+     "angry", 
+     "anxious", 
+     "depressed", 
+     "sad"
+)
+data <- lapply(subj_to_keep, function(i){ 
+     raw_data[raw_data$subj_id == i,vars_to_keep] 
+})
+```
+
+
+# GIMME: Individual-Level Only Analysis
+
+```{r, message = FALSE, results='hide'}
+fit_indsem <- gimme::indSEM(
+     data, 
+     out = "01_indSEM", 
+     standardize = TRUE
+)
+```
+
+## Plots
+
+```{r}
+plot(fit_indsem, file = "subj1")
+```
+# GIMME: Aggregate-Level Analysis
+
+```{r, message = FALSE, results='hide'}
+fit_aggsem <- gimme::aggSEM(
+     data, 
+     out = "02_aggSEM", 
+     standardize = TRUE
+)
+```
+
+## Plots
+
+```{r}
+plot(fit_aggsem)
+```
+
+
+# Standard GIMME
+
+
+```{r, message = FALSE, results='hide'}
+fit_gimmesem <- gimme::gimmeSEM(
+     data, 
+     out = "03_gimmeSEM", 
+     standardize = TRUE
+)
+```
+
+## Plots 
+
+### Group-Level Results
+
+```{r}
+plot(fit_gimmesem)
+```
+## Individual-Level Results
+
+```{r}
+plot(fit_gimmesem, file = "subj1")
+```
+## Estimates
+
+```{r}
+print(fit_gimmesem, file = "subj1")
+```
+# GIMME: Subgroup Analysis
+
+```{r, message = FALSE, results='hide'}
+fit_sub <- gimme::gimmeSEM(
+     data, 
+     out = "04_sub", 
+     standardize = TRUE, 
+     subgroup = TRUE
+)
+```
+
+# GIMME: Confirmatory Subgroup Analysis
+
+```{r, message = FALSE, results='hide'}
+subjname <- paste0("subj",1:10)
+subgroup <- c(1,1,1,1,1,2,2,2,2,2) #create the subgroup
+confirm_dataframe <- data.frame(subjname, subgroup)  #create the dataframe
+
+fit_subcon <- gimme::gimmeSEM(
+     data, 
+     out = "05_subcon", 
+     standardize = TRUE, 
+     subgroup = TRUE, 
+     confirm_subgroup = confirm_dataframe
+)
+```
+## Plots
+
+### All
+
+```{r}
+plot(fit_subcon)
+```
+
+### Subgroups
+
+```{r}
+plot(fit_subcon, subgroup = 1)
+```
+```{r}
+plot(fit_subcon, subgroup = 2)
+```
+## Estimates
+
+```{r}
+print(fit_subcon, subgroup = 1)
+```
+
+```{r}
+print(fit_subcon, subgroup = 1, mean = TRUE)
+```
+
+
+# GIMME: Latent Variable Analysis
+
+```{r, message = FALSE, results='hide'}
+lv_model <- '
+  neg =~ anxious + angry + sad + depressed
+  pos =~ happy + excited + relaxed + satisfied
+'
+
+fit_latent <- gimme::gimmeSEM(
+  data = data,
+  out = "06_latent",
+  standardize = TRUE,
+  lv_model = lv_model
+)
+
+```
+
+
+# multivar
+
+## Data Processing
+
+Missing data routines for multivar are still under development. For that reason we select the first 76 observations for 10 subjects.
+
+```{r, message = FALSE, results='hide', eval = TRUE}
+data_all <- lapply(unique(raw_data$subj_id), function(i){ 
+     raw_data[raw_data$subj_id == i,vars_to_keep] 
+})
+data <- lapply(data_all,function(df){df[complete.cases(df),][1:76,]})[1:10]
+```
+
+```{r, message = FALSE, results='hide', eval = TRUE}
+model <- multivar::constructModel(data = data)
+fit <- multivar::cv.multivar(model)
+```
+
+## Plot Common Effects
+
+```{r}
+plot_results(fit, plot_type = "common")
+```
+## Plot Total Effects Subject 1
+
+```{r}
+plot_results(fit, plot_type = "total", datasets = 1)
+```
+
+
+# References
+
+Haslbeck, J. M. B., Ryan, O., \& Dablander, F. (2022). Multimodality and Skewness in Emotion Time Series. https://doi.org/10.31234/osf.io/qudr6
+
+Rowland, Z., \& Wenzel, M. (2020). Mindfulness and affect-network density: Does mindfulness facilitate disengagement from affective experiences in daily life?. Mindfulness, 11(5), 1253-1266.

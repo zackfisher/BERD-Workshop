@@ -1,0 +1,5 @@
+"lhs","op","rhs","count.group","count.ind"
+"neg","~","neglag",10,0
+"neg","~","pos",10,0
+"pos","~","poslag",10,0
+"pos","~","neglag",0,1
